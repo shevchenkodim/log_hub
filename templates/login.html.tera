@@ -1,0 +1,70 @@
+{% extends "base/base" %}
+
+{% block navigation %}
+{% endblock navigation %}
+
+{% block content_wrapper %}
+<div class="row d-flex justify-content-center">
+    <div class="col-3">
+        <form @submit.prevent="onSubmit" style="position: relative; top: 50%;">
+            <div class="card">
+                <div class="card-header bg-info">
+                    <h3 class="card-title">
+                        Сервіс перегляду логів
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <input hidden type="submit">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Логін</label>
+                        <input v-model="state.loginForm.username" type="text" class="form-control form-control-sm"
+                               id="username" name="login">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input v-model="state.loginForm.password" type="password" class="form-control form-control-sm"
+                               id="password" name="password">
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button @click.prevent="onSubmit" class="btn btn-sm btn-outline-primary float-right">
+                        <i class="fas fa-running mr-1"></i>
+                        Вхід
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script type="application/javascript">
+    var loginUrls = {
+        loginUrl: "/api/v1/user/login"
+    }
+
+    var loginState = {
+        loginForm: {
+            username: "",
+            password: ""
+        }
+    }
+
+    var loginMethods = {
+        onSubmit() {
+            let form = {username: this.state.loginForm.username, password: this.state.loginForm.password}
+            this.doPost(this.urls.loginUrl, JSON.stringify(form), {"Content-Type": "application/json"})
+                .then(resp => {
+                    if (resp.status === 200) {
+                        window.location.href = "/"
+                    }
+                })
+                .catch(errResp => {
+                    toastr.error(errResp.response.data.error)
+                })
+        }
+    }
+
+    appUrls = {...appUrls, ...loginUrls};
+    appState = {...appState, ...loginState};
+    appMethods = {...appMethods, ...loginMethods};
+</script>
+{% endblock content_wrapper %}

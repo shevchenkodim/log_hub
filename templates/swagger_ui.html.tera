@@ -1,0 +1,20 @@
+{% extends "base/base" %}
+
+{% block content %}
+    <div id="swagger-ui" class="pt-0 mt-0"></div>
+    <script>
+        window.onload = function() {
+            const swaggerUI = SwaggerUIBundle({
+                url: "/static/openapi/openapi-schema.yml",
+                dom_id: '#swagger-ui',
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+                layout: "BaseLayout",
+                requestInterceptor: (request) => request
+            })
+            window.ui = swaggerUI
+        }
+    </script>
+{% endblock content %}

@@ -1,0 +1,138 @@
+openapi: 3.0.0
+info:
+  title: 'OpenApi migrations'
+  version: 'v1'
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+
+  schemas:
+    # Schema for error/success response[new format]
+    ErrorApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        payload:
+          type: object
+          example: {}
+        error:
+          type: string
+          example: some error msgs
+      required:
+        - success
+        - payload
+        - error
+    SuccessApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        payload:
+          type: object
+          example: {}
+        error:
+          type: string
+          example: ''
+      required:
+        - success
+        - payload
+        - error
+
+paths:
+  /api/v1/user:
+    post:
+      operationId: create_new_user
+      summary: Create new user by username & password
+      description: 'Create new user by username & password'
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: 'admin'
+                password:
+                  type: string
+                  example: 'admin'
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: "User successfully created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessApiResponse'
+        '400':
+          description: "User creation error[with errors]"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorApiResponse'
+      tags:
+        - users
+  /api/v1/logger:
+    post:
+      operationId: create_new_log
+      summary: Create new log message by params
+      description: 'Create new log message by params'
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                level:
+                  type: number
+                  example: 10
+                event:
+                  type: string
+                  example: 'log'
+                source:
+                  type: string
+                  example: 'application_identifier'
+                logger_name:
+                  type: string
+                  example: 'any_service_key'
+                msg:
+                  type: string
+                  example: 'log message'
+                params:
+                  type: object
+                  example: "{'client_id': '000001'} / {}"
+              required:
+                - event
+                - source
+                - logger_name
+                - msg
+                - params
+      responses:
+        '200':
+          description: "User successfully created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessApiResponse'
+        '400':
+          description: "User creation error[with errors]"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorApiResponse'
+      tags:
+        - log_messages

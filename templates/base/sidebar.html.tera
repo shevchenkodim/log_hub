@@ -1,0 +1,25 @@
+<aside class="main-sidebar bg-gradient-gray-dark sidebar-dark-gray sidebar-collapse">
+    <a href="/" class="brand-link bg-gradient-gray">
+        <img src="/" alt="SF Staff Logo" class="brand-image img-circle elevation-3" stype="opacity: .7">
+        <span class="brand-text font-weight-light text-md">
+            Сервіс перегляду логів
+        </span>
+    </a>
+    <div class="sidebar h-100">
+        <div class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                {% for m in menu %}
+                    <li class="nav-item">
+                        <a href="{{ m.href }}"
+                           style="height: 40px;"
+                           class="nav-link {% if m.is_active %} active {% endif %} w-100 d-flex align-items-center"
+                        >
+                            <i class="nav-icon {{ m.icon }}"></i>
+                            {{ m.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</aside>

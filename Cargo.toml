@@ -6,3 +6,22 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# web
+actix-web = "4"
+
+# data structures
+serde_json = "1.0.44"
+serde = { version = "1.0.104", features = ["derive"] }
+
+# date & times
+chrono = { version = "0.4.19", features = ["serde"] }
+
+# environment
+envy = "0.4"
+
+# postgres
+postgres-types = {version = "0.2.4", features = ["derive", "with-serde_json-1"]}
+deadpool-postgres = "0.10.2"
+
+# logging
+log = { version = "0.4.17", features = ["kv_unstable"] }

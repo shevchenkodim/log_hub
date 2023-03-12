@@ -1,0 +1,386 @@
+{% extends "base/base" %}
+
+{% block content %}
+<div class="row p-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-gray">
+                <h3 class="card-title">
+                    <i class="fas fa-filter"></i>
+                    Фільтр
+                </h3>
+            </div>
+            <form @submit.prevent="doApplyFilter">
+                <input type="submit" hidden>
+                <div class="card-body">
+                    <div class="form-row mb-2">
+                        <div class="col-3">
+                            <label for="form_level">
+                                Рівень
+                            </label>
+                            <select v-model="state.filterForm.level" id="form_level" name="form_level"
+                                    class="form-control form-control-sm">
+                                <option v-for="l in state.filterForm.levelDataset" :value="l.value">
+                                    [[ l.name ]]
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label for="form_event">
+                                Тип повідомлення
+                            </label>
+                            <select v-model="state.filterForm.event" id="form_event" name="form_level"
+                                    class="form-control form-control-sm">
+                                <option v-for="l in state.filterForm.eventDataset" :value="l.value">
+                                    [[ l.name ]]
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label for="form_source">
+                                Джерело даних
+                            </label>
+                            <select v-model="state.filterForm.source" id="form_source" name="form_level"
+                                    class="form-control form-control-sm">
+                                <option v-for="l in state.filterForm.sourceDataset" :value="l.value">
+                                    [[ l.name ]]
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label for="form_logger">
+                                Назва логеру
+                            </label>
+                            <select v-model="state.filterForm.logger" id="form_logger" name="form_level"
+                                    class="form-control form-control-sm">
+                                <option v-for="l in state.filterForm.loggerDataset" :value="l.value">
+                                    [[ l.name ]]
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-3">
+                            <label for="form_filter_date">
+                                Фільтрувати по даті
+                            </label>
+                            <select v-model="state.filterForm.filterDate" id="form_filter_date" name="form_level"
+                                    class="form-control form-control-sm">
+                                <option v-for="l in state.filterForm.filterDateDataset" :value="l.value">
+                                    [[ l.name ]]
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-3" v-if="state.filterForm.filterDate === 'interval'">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label for="form_filter_date_start">
+                                        Початок*
+                                    </label>
+                                    <input v-model="state.filterForm.filterDateStart" id="form_filter_date_start" type="date" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-6">
+                                    <label for="form_filter_date_end">
+                                        Закінчення*
+                                    </label>
+                                    <input v-model="state.filterForm.filterDateEnd" id="form_filter_date_end" type="date" class="form-control form-control-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="form_filter_search">
+                                Додаткове поле пошуку
+                            </label>
+                            <input v-model="state.filterForm.filterSearchPhrase"
+                                   id="form_filter_search" type="text" class="form-control form-control-sm"
+                                   placeholder="Текст пошуку ...">
+                        </div>
+                        <div class="col-1 d-flex align-items-end">
+                            <button @click="doApplyFilter" type="button" class="btn btn-sm btn-success btn-block">
+                                Пошук
+                                <i class="fas fa-search pl-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="overlay" v-if="state.isLoading === true">
+                <i class="fas fa-2x fa-sync fa-spin"> </i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title">
+                    <i class="fas fa-list mr-1"></i>
+                    Перелік логів
+                </h3>
+                <div class="card-tools">
+                    <button class="btn btn-tool" @click="doLoadArray">
+                        <i class="fas fa-sync"></i>
+                    </button>
+
+                    <ul class="pagination pagination-sm float-right pt-1"
+                        v-if="state.pages.count > 0"
+                    >
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="#"
+                               v-if="state.pages.current > 1"
+                               v-on:click="doPage(state.pages.current - 1, $event)"
+                            >
+                                «
+                            </a>
+                            <a class="page-link"
+                               href="#"
+                               v-else
+                               href="#"
+                            >
+                                «
+                            </a>
+                        </li>
+                        <li class="page-item"
+                            v-bind:class="{active: n === state.pages.current}"
+                            v-for="n in (state.pages.count <= 5) ? state.pages.count : (state.pages.current < 3) ? [1, 2, 3, '...', state.pages.count ] : (state.pages.current > state.pages.count - 2) ? [1, '...', state.pages.count - 2, state.pages.count - 1, state.pages.count ] : [1, '...', state.pages.current - 1, state.pages.current, state.pages.current + 1, '...', state.pages.count]"
+                        >
+                            <a v-if="Number.isInteger(n)" class="page-link" href="#"
+                               v-on:click="doPage(n, $event)"
+                            >
+                                [[ n ]]
+                            </a>
+                            <a v-else
+                               class="page-link" href="#"
+                            >
+                                [[ n ]]
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#"
+                               v-if="state.pages.current < state.pages.count-1"
+                               v-on:click="doPage(state.pages.current + 1, $event)"
+                            >
+                                »
+                            </a>
+                            <a class="page-link"
+                               v-else
+                               href="#"
+                            >
+                                »
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body table-responsive p-0" style="height: 500px;">
+                <table class="table table-head-fixed text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Рівень</th>
+                        <th>Тип</th>
+                        <th>Джерело даних</th>
+                        <th>Назва логеру</th>
+                        <th>Повідомлення</th>
+                        <th>Дата</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="r in state.loggerMsgArray" :key="r.id">
+                        <td>[[ r.id ]]</td>
+                        <td>[[ r.level ]]</td>
+                        <td>[[ getMessageTypeInfo("event", r.event_id) ]]</td>
+                        <td>[[ getMessageTypeInfo("source", r.source_id) ]]</td>
+                        <td>[[ getMessageTypeInfo("logger", r.logger_name_id) ]]</td>
+                        <td>
+                            <span v-if="r.msg.length <= 100">
+                                [[ r.msg ]]
+                            </span>
+                            <span else>
+                                [[ r.msg.slice(0, 100) ]]...
+                            </span>
+                            <button class="btn btn-sm" @click="onOpenDetail(r.id)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                        <td>[[ parseDateTime(r.created_at) ]]</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="overlay" v-if="state.isLoading === true">
+                <i class="fas fa-2x fa-sync fa-spin"> </i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="detail_module_id" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-navy">
+                <h4 class="modal-title text-center">
+                    Перегляд запису #[[state.detail.id]]
+                </h4>
+            </div>
+            <div class="modal-body overflow-scroll">
+                <div class="row">
+                    <div class="col-12">
+                        <label>
+                            Повідомлення
+                        </label>
+                        <textarea v-model="state.detail.msg" class="form-control form-control-sm" rows="7"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label>
+                            Додаткові параметри
+                        </label>
+                        <textarea v-model="state.detail.params" class="form-control form-control-sm" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-end">
+                <button class="btn btn-default" type="button" data-dismiss="modal">
+                    Закрити
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    appCreated = function () {
+        this.doLoadFilter()
+    }
+
+    let indexUrls = {
+        loggerUrl: "/api/v1/logger",
+        loggerFilterUrl: "/api/v1/logger/filter"
+    }
+
+    let indexState = {
+        isLoading: false,
+        filterForm: {
+            level: null,
+            levelDataset: [],
+            event: null,
+            eventDataset: [],
+            source: null,
+            sourceDataset: [],
+            logger: null,
+            loggerDataset: [],
+            filterDate: null,
+            filterDateStart: null,
+            filterDateEnd: null,
+            filterDateDataset: [],
+            filterSearchPhrase: null,
+        },
+        loggerMsgArray: [],
+        pages: {count: 1, current: 1, step: 10},
+        detail: {id: null, msg: null, params: null}
+    }
+
+    let indexMethods = {
+        doPage(page, event) {
+            this.state.pages.current = page;
+            this.doLoadArray()
+            event.preventDefault()
+        },
+        doLoadFilter: function() {
+            this.doGet(this.urls.loggerFilterUrl)
+                .then(resp => {
+                    if (resp.status === 200 && resp.data.success) {
+                        this.state.filterForm = Object.assign(this.state.filterForm, resp.data.payload)
+                        this.doLoadArray()
+                    }
+                })
+        },
+        doApplyFilter: function() {
+            this.state.pages.current = 1;
+            this.doLoadArray()
+        },
+        doLoadArray: function () {
+            this.state.isLoading = true;
+
+            let limit = this.state.pages.step;
+            let offset = this.state.pages.current * limit - this.state.pages.step;
+
+            let form = this.state.filterForm;
+            let paramsUrl = `limit=${limit}&offset=${offset}&level=${form.level}&event=${form.event}&source=${form.source}&logger=${form.logger}`
+            if(form.filterDate === "interval") {
+                paramsUrl = `${paramsUrl}&filter_date=${form.filterDate}&filter_date_start=${form.filterDateStart}&filter_date_end=${form.filterDateEnd}`
+            } else if (form.filterDate !== null) {
+                paramsUrl = `${paramsUrl}&filter_date=${form.filterDate}`
+            }
+
+            if(form.filterSearchPhrase) {
+                paramsUrl = `${paramsUrl}&search=${form.filterSearchPhrase}`
+            }
+
+            this.doGet(`${this.urls.loggerUrl}?${paramsUrl}`)
+                .then(resp => {
+                    if (resp.status === 200) {
+                        this.state.loggerMsgArray = resp.data.payload.array;
+                        this.state.pages.count = resp.data.payload.pages.count;
+                    }
+                })
+                .catch(errResp => {
+                    toastr.error(errResp.response.data.error)
+                })
+                .finally(() => {
+                    this.state.isLoading = false;
+                })
+        },
+        getMessageTypeInfo: function(scope, id) {
+            let mT = [];
+            switch (scope) {
+                case "event":
+                    mT = this.state.filterForm.eventDataset.filter(e => e.value === id);
+                    break
+                case "source":
+                    mT = this.state.filterForm.sourceDataset.filter(e => e.value === id);
+                    break
+                case "logger":
+                    mT = this.state.filterForm.loggerDataset.filter(e => e.value === id);
+                    break
+                default:
+                    mT = []
+            }
+
+            if (mT.length > 0) {
+                return mT[0].name;
+            } else {
+                return "";
+            }
+        },
+        parseDateTime: function (d) {
+            let date = new Date(d);
+
+            let dateDay = date.getDate();
+            let dateMonth = date.getMonth() + 1;
+
+            let day = dateDay > 9 ? `${dateDay}` : `0${dateDay}`;
+            let month = dateMonth > 9 ? `${dateMonth}` : `0${dateMonth}`;
+
+            return `${day}.${month}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
+        },
+        onOpenDetail: function (id) {
+            let found = this.state.loggerMsgArray.filter(m => m.id === id);
+            if (found.length > 0) {
+                let current = found[0];
+                this.state.detail = {
+                    id: current.id,
+                    msg: current.msg,
+                    params: JSON.stringify(current.params, undefined, 4)
+                };
+                $('#detail_module_id').modal('show');
+            }
+        }
+    }
+
+    appUrls = {...appUrls, ...indexUrls};
+    appState = {...appState, ...indexState};
+    appMethods = {...appMethods, ...indexMethods};
+</script>
+{% endblock content %}

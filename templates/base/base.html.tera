@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+{% block header %}
+    {% include "base/headers" %}
+{% endblock header %}
+<body class="sidebar-mini">
+<div class="wrapper" id="core_app">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <script>
+        let appState = {}
+        let appMethods = {}
+        let appUrls = {}
+
+        let appCreated = function () {
+        }
+        let appMounted = function () {
+        }
+    </script>
+
+    {% block navigation %}
+        {% block navbar %}
+            {% include "base/navbar" %}
+        {% endblock navbar %}
+
+        {% block sidebar %}
+            {% include "base/sidebar" %}
+        {% endblock sidebar %}
+    {% endblock navigation %}
+
+    {% block content_wrapper %}
+        <div class="content-wrapper">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    {% endblock content_wrapper %}
+
+    <script>
+        let rootMethods = {
+            doPost: function (url, data, head = {}) {
+                return axios({method: 'POST', url: url, data: data, headers: {"X-CSRFToken": this.protectionCSRF, ...head}})
+            },
+            doGet: function (url) {
+                return axios({method: 'GET', url: url,})
+            },
+        }
+
+        let core_app = new Vue({
+            delimiters: ['[[', ']]'],
+            el: '#core_app',
+            data: {
+                state: {
+                    ...appState,
+                    isLoading: false
+                },
+                urls: appUrls,
+                protectionCSRF: document.getElementsByName("csrf_token")[0].value
+            },
+            methods: {...appMethods, ...rootMethods},
+            created: appCreated,
+            mounted: appMounted,
+            watch: {}
+        });
+    </script>
+</div>
+</body>
+</html>
