@@ -1,10 +1,13 @@
 use deadpool_postgres::SslMode;
+use serde::Deserialize;
+use crate::adapters::spi::postgres::connection::PostgresClientConfig;
 
 
-#[derive(Debug, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Configuration {
     // system
     pub debug: bool,
+    pub http_server_url: String,
 
     // basic authentication
     pub system_username: String,
@@ -35,5 +38,16 @@ impl Configuration {
             ssl_mode = SslMode::Disable;
         }
         ssl_mode
+    }
+
+    pub fn postgresql_config(&self) -> PostgresClientConfig {
+        PostgresClientConfig {
+            db_name: self.database_name.to_string(),
+            host: self.database_host.to_string(),
+            port: self.database_port,
+            user: self.database_user.to_string(),
+            password: self.database_password.to_string(),
+            ssl: self.database_ssl_mode(),
+        }
     }
 }
